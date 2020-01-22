@@ -41,6 +41,7 @@ class FFMpegConan(ConanFile):
                "pulse": [True, False],
                "vaapi": [True, False],
                "vdpau": [True, False],
+               "cuda": [True, False],
                "xcb": [True, False],
                "appkit": [True, False],
                "avfoundation": [True, False],
@@ -74,6 +75,7 @@ class FFMpegConan(ConanFile):
                        'pulse': True,
                        'vaapi': True,
                        'vdpau': True,
+                       'cuda': True,
                        'xcb': True,
                        'appkit': True,
                        'avfoundation': True,
@@ -169,6 +171,8 @@ class FFMpegConan(ConanFile):
             self.requires.add("libwebp/1.0.3")
         if self.options.openssl:
             self.requires.add("openssl/1.1.1d")
+        if self.options.cuda:
+            self.requires.add("ffnvcodec/9.0.18.2")
         if self.settings.os == "Windows":
             if self.options.qsv:
                 self.requires.add("intel_media_sdk/2018R2_1@bincrafters/stable")
@@ -195,6 +199,7 @@ class FFMpegConan(ConanFile):
 
     def _copy_pkg_config(self, name):
         root = self.deps_cpp_info[name].rootpath
+        self.output.warn("root dir: " + root)
         pc_dir = os.path.join(root, 'lib', 'pkgconfig')
         pc_files = glob.glob('%s/*.pc' % pc_dir)
         for pc_name in pc_files:
@@ -308,8 +313,10 @@ class FFMpegConan(ConanFile):
             if self.settings.os == "Windows":
                 args.append('--enable-libmfx' if self.options.qsv else '--disable-libmfx')
 
-            # FIXME disable CUDA and CUVID by default, revisit later
-            args.extend(['--disable-cuda', '--disable-cuvid'])
+            if self.options.cuda:
+                args.extend(['--enable-cuda', '--enable-cuvid'])
+            else:
+                args.extend(['--disable-cuda', '--disable-cuvid'])
 
             env_build = AutoToolsBuildEnvironment(self, win_bash=self._is_mingw_windows or self._is_msvc)
             # ffmpeg's configure is not actually from autotools, so it doesn't understand standard options like
