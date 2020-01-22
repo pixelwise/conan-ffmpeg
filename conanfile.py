@@ -107,23 +107,7 @@ class FFMpegConan(ConanFile):
         del self.settings.compiler.cppstd
 
     def config_options(self):
-        if self.settings.os == "Windows":
-            del self.options.fPIC
-        if self.settings.os != "Linux":
-            self.options.remove("vaapi")
-            self.options.remove("vdpau")
-            self.options.remove("xcb")
-            self.options.remove("alsa")
-            self.options.remove("pulse")
-        if self.settings.os != "Macos":
-            self.options.remove("appkit")
-            self.options.remove("avfoundation")
-            self.options.remove("coreimage")
-            self.options.remove("audiotoolbox")
-            self.options.remove("videotoolbox")
-            self.options.remove("securetransport")
-        if self.settings.os != "Windows":
-            self.options.remove("qsv")
+        pass
 
     def build_requirements(self):
         self.build_requires("yasm/1.3.0")
