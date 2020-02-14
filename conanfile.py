@@ -302,6 +302,8 @@ class FFMpegConan(ConanFile):
             else:
                 args.extend(['--disable-cuda', '--disable-cuvid'])
 
+            args.extend(['--enable-ffmpeg', '--enable-ffprobe', '--enable-ffplay'])
+
             env_build = AutoToolsBuildEnvironment(self, win_bash=self._is_mingw_windows or self._is_msvc)
             # ffmpeg's configure is not actually from autotools, so it doesn't understand standard options like
             # --host, --build, --target
@@ -312,6 +314,11 @@ class FFMpegConan(ConanFile):
     def package(self):
         with tools.chdir(self._source_subfolder):
             self.copy(pattern="LICENSE")
+        if self.settings.os == "Windows":
+          self.copy(pattern="*.exe", dst="bin", keep_path=False)
+        else:
+          for exe in ["ffmpeg", "ffprobe", "ffplay"]:
+            self.copy(pattern="*/%s" % exe, dst="bin", keep_path=False)
         if self._is_msvc and not self.options.shared:
             # ffmpeg produces .a files which are actually .lib files
             with tools.chdir(os.path.join(self.package_folder, 'lib')):
