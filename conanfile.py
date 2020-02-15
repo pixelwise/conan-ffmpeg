@@ -49,6 +49,8 @@ class FFMpegConan(ConanFile):
                "audiotoolbox": [True, False],
                "videotoolbox": [True, False],
                "securetransport": [True, False],
+               "programs": [True, False],
+               "progssuffix": "ANY",
                "qsv": [True, False]}
     default_options = {'shared': False,
                        'fPIC': True,
@@ -83,6 +85,8 @@ class FFMpegConan(ConanFile):
                        'audiotoolbox': True,
                        'videotoolbox': True,
                        'securetransport': False,  # conflicts with OpenSSL
+                       "programs": False,
+                       "progssuffix": None,
                        'qsv': True}
     generators = "pkg_config"
     _source_subfolder = "source_subfolder"
@@ -226,8 +230,13 @@ class FFMpegConan(ConanFile):
         with tools.chdir(self._source_subfolder):
             prefix = tools.unix_path(self.package_folder) if self.settings.os == 'Windows' else self.package_folder
             args = ['--prefix=%s' % prefix,
-                    '--disable-doc',
-                    '--disable-programs']
+                    '--disable-doc',]
+            if self.options.programs:
+                pass
+            else:
+                args.extend(['--disable-programs',])
+            if self.options.progssuffix:
+                args.extend(['--progs-suffix=%s'%self.options.progssuffix])
             if self.options.shared:
                 args.extend(['--disable-static', '--enable-shared'])
             else:
@@ -302,8 +311,6 @@ class FFMpegConan(ConanFile):
             else:
                 args.extend(['--disable-cuda', '--disable-cuvid'])
 
-            args.extend(['--enable-ffmpeg', '--enable-ffprobe', '--enable-ffplay'])
-
             env_build = AutoToolsBuildEnvironment(self, win_bash=self._is_mingw_windows or self._is_msvc)
             # ffmpeg's configure is not actually from autotools, so it doesn't understand standard options like
             # --host, --build, --target
@@ -317,7 +324,11 @@ class FFMpegConan(ConanFile):
         if self.settings.os == "Windows":
           self.copy(pattern="*.exe", dst="bin", keep_path=False)
         else:
-          for exe in ["ffmpeg", "ffprobe", "ffplay"]:
+          for exe in [
+              "ffmpeg",
+              "ffprobe",
+              "ffplay",
+          ]:
             self.copy(pattern="*/%s" % exe, dst="bin", keep_path=False)
         if self._is_msvc and not self.options.shared:
             # ffmpeg produces .a files which are actually .lib files
