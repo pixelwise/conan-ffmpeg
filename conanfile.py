@@ -320,6 +320,7 @@ class FFMpegConan(ConanFile):
 
     def package(self):
         self.copy(pattern="LICENSE")
+        self.copy(pattern="conan_run.log")
         # there is no need to copy anything since the make install will install everything properly
         if self._is_msvc and not self.options.shared:
             # ffmpeg produces .a files which are actually .lib files
