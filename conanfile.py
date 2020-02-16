@@ -322,14 +322,14 @@ class FFMpegConan(ConanFile):
         with tools.chdir(self._source_subfolder):
             self.copy(pattern="LICENSE")
         if self.settings.os == "Windows":
-          self.copy(pattern="*.exe", dst="bin", keep_path=False)
+            self.copy(pattern="*.exe", dst="bin", keep_path=False)
         else:
-          for exe in [
+            for exe in [
               "ffmpeg",
               "ffprobe",
               "ffplay",
-          ]:
-            self.copy(pattern="*/%s" % exe, dst="bin", keep_path=False)
+            ]:
+                self.copy(pattern="*/%s*" % exe, dst="bin", keep_path=False)
         if self._is_msvc and not self.options.shared:
             # ffmpeg produces .a files which are actually .lib files
             with tools.chdir(os.path.join(self.package_folder, 'lib')):
