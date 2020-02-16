@@ -310,26 +310,17 @@ class FFMpegConan(ConanFile):
                 args.extend(['--enable-cuda', '--enable-cuvid'])
             else:
                 args.extend(['--disable-cuda', '--disable-cuvid'])
-
-            env_build = AutoToolsBuildEnvironment(self, win_bash=self._is_mingw_windows or self._is_msvc)
-            # ffmpeg's configure is not actually from autotools, so it doesn't understand standard options like
-            # --host, --build, --target
-            env_build.configure(args=args, build=False, host=False, target=False)
-            env_build.make()
-            env_build.make(args=['install'])
+        #out-of-source build
+        env_build = AutoToolsBuildEnvironment(self, win_bash=self._is_mingw_windows or self._is_msvc)
+        # ffmpeg's configure is not actually from autotools, so it doesn't understand standard options like
+        # --host, --build, --target
+        env_build.configure(configure_dir=self._source_subfolder, args=args, build=False, host=False, target=False)
+        env_build.make()
+        env_build.make(args=['install'])
 
     def package(self):
-        with tools.chdir(self._source_subfolder):
-            self.copy(pattern="LICENSE")
-        if self.settings.os == "Windows":
-            self.copy(pattern="*.exe", dst="bin", keep_path=False)
-        else:
-            for exe in [
-              "ffmpeg",
-              "ffprobe",
-              "ffplay",
-            ]:
-                self.copy(pattern="*/%s*" % exe, dst="bin", keep_path=False)
+        self.copy(pattern="LICENSE")
+        # there is no need to copy anything since the make install will install everything properly
         if self._is_msvc and not self.options.shared:
             # ffmpeg produces .a files which are actually .lib files
             with tools.chdir(os.path.join(self.package_folder, 'lib')):
