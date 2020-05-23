@@ -220,6 +220,7 @@ class FFMpegConan(ConanFile):
 
     def build_configure(self):
         # FIXME : once component feature is out, should be unnecessary
+        flags = ""
         if self.options.webp:
             self._copy_pkg_config('libwebp')  # components: libwebpmux
         if self.options.vorbis:
@@ -302,6 +303,7 @@ class FFMpegConan(ConanFile):
                 args.append('--enable-audiotoolbox' if self.options.audiotoolbox else '--disable-audiotoolbox')
                 args.append('--enable-videotoolbox' if self.options.videotoolbox else '--disable-videotoolbox')
                 args.append('--enable-securetransport' if self.options.securetransport else '--disable-securetransport')
+                flags += ' -fno-stack-check'
 
             if self.settings.os == "Windows":
                 args.append('--enable-libmfx' if self.options.qsv else '--disable-libmfx')
@@ -312,9 +314,16 @@ class FFMpegConan(ConanFile):
                 args.extend(['--disable-cuda', '--disable-cuvid'])
         #out-of-source build
         env_build = AutoToolsBuildEnvironment(self, win_bash=self._is_mingw_windows or self._is_msvc)
+        env_build.flags += flags,
         # ffmpeg's configure is not actually from autotools, so it doesn't understand standard options like
         # --host, --build, --target
-        env_build.configure(configure_dir=self._source_subfolder, args=args, build=False, host=False, target=False)
+        env_build.configure(
+          configure_dir=self._source_subfolder,
+          args=args,
+          build=False,
+          host=False,
+          target=False
+        )
         env_build.make()
         env_build.make(args=['install'])
 
