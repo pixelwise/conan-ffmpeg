@@ -2,7 +2,7 @@ from conans import ConanFile, AutoToolsBuildEnvironment, tools
 import os
 import glob
 import shutil
-
+import re
 
 class FFMpegConan(ConanFile):
     name = "ffmpeg"
@@ -91,8 +91,6 @@ class FFMpegConan(ConanFile):
     generators = "pkg_config"
     _source_subfolder = "source_subfolder"
     exports_sources = ['patches/*.patch',]
-    patches = glob.glob('patches/*.patch')
-    print(patches)
 
     @property
     def _is_mingw_windows(self):
@@ -103,14 +101,22 @@ class FFMpegConan(ConanFile):
         return self.settings.compiler == 'Visual Studio'
 
     def source(self):
-        source_url = "https://ffmpeg.org/releases/ffmpeg-%s.tar.bz2" % self.version
+        print('source()')
+        patches = glob.glob('patches/*.patch')
+        print(patches)
+        version_pattern = r'^(.+?\..+?\..+?)-?'
+        match= re.match(version_pattern, self.version)
+        if not match:
+            raise RuntimeError('{} does not match version pattern {}'.format(self.version, version_pattern))
+        official_ffmpeg_version = match.group(1)
+        source_url = "https://ffmpeg.org/releases/ffmpeg-%s.tar.bz2" % official_ffmpeg_version
         tools.get(source_url,
                   sha256="682a9fa3f6864d7f0dbf224f86b129e337bc60286e0d00dffcd710998d521624")
-        extracted_dir = self.name + "-" + self.version
+        extracted_dir = self.name + "-" + official_ffmpeg_version
         os.rename(extracted_dir, self._source_subfolder)
 
-        for patch in self.patches:
-            print(patch)
+        for patch in patches:
+            print("patch with: ", patch)
             tools.patch(self._source_subfolder, patch_file=patch)
 
     def configure(self):
