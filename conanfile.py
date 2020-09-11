@@ -6,7 +6,7 @@ import shutil
 
 class FFMpegConan(ConanFile):
     name = "ffmpeg"
-    version = "4.2.1"
+    version = "4.2.1-zero-target-length"
     url = "https://github.com/bincrafters/conan-ffmpeg"
     description = "A complete, cross-platform solution to record, convert and stream audio and video"
     # https://github.com/FFmpeg/FFmpeg/blob/master/LICENSE.md
@@ -90,6 +90,9 @@ class FFMpegConan(ConanFile):
                        'qsv': True}
     generators = "pkg_config"
     _source_subfolder = "source_subfolder"
+    exports_sources = ['patches/*.patch',]
+    patches = glob.glob('patches/*.patch')
+    print(patches)
 
     @property
     def _is_mingw_windows(self):
@@ -105,6 +108,10 @@ class FFMpegConan(ConanFile):
                   sha256="682a9fa3f6864d7f0dbf224f86b129e337bc60286e0d00dffcd710998d521624")
         extracted_dir = self.name + "-" + self.version
         os.rename(extracted_dir, self._source_subfolder)
+
+        for patch in self.patches:
+            print(patch)
+            tools.patch(self._source_subfolder, patch_file=patch)
 
     def configure(self):
         del self.settings.compiler.libcxx

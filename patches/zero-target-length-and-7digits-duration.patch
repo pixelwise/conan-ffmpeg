@@ -1,0 +1,22 @@
+diff -Naur work_around_for_gsthls/libavformat/hlsplaylist.c ./libavformat/hlsplaylist.c
+--- work_around_for_gsthls/libavformat/hlsplaylist.c	2019-08-05 22:52:21.000000000 +0200
++++ ./libavformat/hlsplaylist.c	2020-09-11 17:03:07.790036898 +0200
+@@ -83,7 +83,8 @@
+     if (allowcache == 0 || allowcache == 1) {
+         avio_printf(out, "#EXT-X-ALLOW-CACHE:%s\n", allowcache == 0 ? "NO" : "YES");
+     }
+-    avio_printf(out, "#EXT-X-TARGETDURATION:%d\n", target_duration);
++    //avio_printf(out, "#EXT-X-TARGETDURATION:%d\n", target_duration);
++    avio_printf(out, "#EXT-X-TARGETDURATION:0\n");
+     avio_printf(out, "#EXT-X-MEDIA-SEQUENCE:%"PRId64"\n", sequence);
+     av_log(NULL, AV_LOG_VERBOSE, "EXT-X-MEDIA-SEQUENCE:%"PRId64"\n", sequence);
+ 
+@@ -122,7 +123,7 @@
+     if (round_duration)
+         avio_printf(out, "#EXTINF:%ld,\n",  lrint(duration));
+     else
+-        avio_printf(out, "#EXTINF:%f,\n", duration);
++        avio_printf(out, "#EXTINF:%.7f,\n", duration);
+     if (byterange_mode)
+         avio_printf(out, "#EXT-X-BYTERANGE:%"PRId64"@%"PRId64"\n", iframe_mode ? video_keyframe_size : size,
+                     iframe_mode ? video_keyframe_pos : pos);
